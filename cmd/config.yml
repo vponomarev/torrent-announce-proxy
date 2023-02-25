@@ -1,0 +1,44 @@
+http:
+  listen: "0.0.0.0:8080"
+
+https:
+  listen: "0.0.0.0:8443"
+  key: "keyfile"
+  pem: "pemfile"
+
+domains:
+  - endpoints: [ "endpoint1.somesite.ru", "endpoint2.somesite.ru", "endpoint3.somesite.ru" ]
+    methods: [ "GET", "POST" ]
+    action: "announcer-proxy"
+  - endpoints: [ "retracker.local" ]
+    methods: [ "GET" ]
+    action: "tracker"
+
+  - endpoints: [ "vpnc.ru:443" ]
+    methods: [ "CONNECT" ]
+    action: "dumb-action"
+
+api:
+  endpoint: "api.announcer.local"
+  prefix: "/api"
+
+proxy:
+  - id: "announcer-proxy"
+    XForwardedFor: yes    # Включить добавление поля X-Forwarded-For
+    localForwarder: yes   # Включить режим локального форвардинга - переадресовывать трафик на целевой хост даже в случае, когда к прокси обращались как к обычному web серверу
+    addHeaders:
+      - key: "X-Secure-Identity"
+        value: "TestSecureIdentitiyKey"
+    filters: [ "tracker" ]
+    tracker:
+      enabled: yes        # Разрешить фильтр tracker
+      allowMirror: true   # Разрешить мирроринг IP адреса
+  - id: "proxy"
+    XForwardedFor: yes
+
+
+tracker:
+  - id: "tracker"
+    announcePeriod: 1800
+    allowMirror: true
+
